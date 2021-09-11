@@ -15,12 +15,12 @@ fn main() {
     
     let mut p = Projectile {
         position: Point::new(0.0, 99.0, 0.0),
-        velocity: Vector::new(3.0, -10.0, 0.0),
+        velocity: Vector::new(5.0, -12.0, 0.0),
     };
 
     let env = Environment {
         gravity: Vector::new(0.0, 1.0, 0.0),
-        wind: Vector::new(0.0, 0.0, 0.0),
+        wind: Vector::new(-0.05, 0.0, 0.0),
     };
 
     c.write_pixel(
@@ -31,7 +31,10 @@ fn main() {
 
     loop {
         p = tick(&p, &env);
-        if p.position.y >= 100.0 || p.position.x >= 100.0 {
+        if p.position.x < 0.0 
+        || p.position.x >= 100.0
+        || p.position.y < 0.0
+        || p.position.y >= 100.0 {
             break;
         }
         c.write_pixel(

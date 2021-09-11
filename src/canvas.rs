@@ -22,7 +22,7 @@ impl Canvas {
     }
 
     pub fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
-        let pixel = self.canvas.get_mut(y, x).expect(&format!("{} {}", x, y));
+        let pixel = self.canvas.get_mut(y, x).unwrap();
         *pixel = c;
     }
 
@@ -35,16 +35,16 @@ impl Canvas {
             "255".to_string()];
 
         for row in 0..self.height {
-            let mut pixel_row = String::new();
+            let mut row_buf = Vec::new();
             for cell in self.canvas.iter_row(row) {
-                let cell_data = format!(
-                    "{} {} {}",
-                    (cell.r.clamp(0.0, 1.0) * 255.0).round() as isize,
-                    (cell.g.clamp(0.0, 1.0) * 255.0).round() as isize,
-                    (cell.b.clamp(0.0, 1.0) * 255.0).round() as isize,
-                );
-
-                if pixel_row.len() + cell_data.len() > 69 {
+                row_buf.push(format!("{}", (cell.r.clamp(0.0, 1.0) * 255.0).round() as isize));
+                row_buf.push(format!("{}", (cell.g.clamp(0.0, 1.0) * 255.0).round() as isize));
+                row_buf.push(format!("{}", (cell.b.clamp(0.0, 1.0) * 255.0).round() as isize));
+            }
+            
+            let mut pixel_row = String::new();
+            for data in row_buf {
+                if pixel_row.len() + data.len() + 1 > 70 {
                     ppm.push(pixel_row.clone());
                     pixel_row = String::new();
                 }
@@ -52,8 +52,7 @@ impl Canvas {
                 if !pixel_row.is_empty() {
                     pixel_row.push(' ');
                 }
-
-                pixel_row.push_str(&cell_data);
+                pixel_row.push_str(&data);
             }
             ppm.push(pixel_row);
         }
@@ -113,8 +112,6 @@ mod tests {
         assert_eq!(ppm[5], String::from("0 0 0 0 0 0 0 0 0 0 0 0 0 0 255"));
     }
 
-    // we will ignore this for now, it's a bit of a pain and it's probably ok anyway
-    #[ignore]
     #[test]
     fn ppm_long_lines() {
         let mut c = Canvas::new(10, 2);
