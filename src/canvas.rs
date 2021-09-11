@@ -32,16 +32,26 @@ impl Canvas {
         let mut ppm = vec![
             "P3".to_string(),
             format!("{} {}", self.width, self.height),
-            "255".to_string()];
+            "255".to_string(),
+        ];
 
         for row in 0..self.height {
             let mut row_buf = Vec::new();
             for cell in self.canvas.iter_row(row) {
-                row_buf.push(format!("{}", (cell.r.clamp(0.0, 1.0) * 255.0).round() as isize));
-                row_buf.push(format!("{}", (cell.g.clamp(0.0, 1.0) * 255.0).round() as isize));
-                row_buf.push(format!("{}", (cell.b.clamp(0.0, 1.0) * 255.0).round() as isize));
+                row_buf.push(format!(
+                    "{}",
+                    (cell.r.clamp(0.0, 1.0) * 255.0).round() as isize
+                ));
+                row_buf.push(format!(
+                    "{}",
+                    (cell.g.clamp(0.0, 1.0) * 255.0).round() as isize
+                ));
+                row_buf.push(format!(
+                    "{}",
+                    (cell.b.clamp(0.0, 1.0) * 255.0).round() as isize
+                ));
             }
-            
+
             let mut pixel_row = String::new();
             for data in row_buf {
                 if pixel_row.len() + data.len() + 1 > 70 {
@@ -122,10 +132,22 @@ mod tests {
         }
         let ppm = c.to_ppm();
 
-        assert_eq!(ppm[3], String::from("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204"));
-        assert_eq!(ppm[4], String::from("153 255 204 153 255 204 153 255 204 153 255 204 153"));
-        assert_eq!(ppm[5], String::from("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204"));
-        assert_eq!(ppm[6], String::from("153 255 204 153 255 204 153 255 204 153 255 204 153"));
+        assert_eq!(
+            ppm[3],
+            String::from("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204")
+        );
+        assert_eq!(
+            ppm[4],
+            String::from("153 255 204 153 255 204 153 255 204 153 255 204 153")
+        );
+        assert_eq!(
+            ppm[5],
+            String::from("255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204")
+        );
+        assert_eq!(
+            ppm[6],
+            String::from("153 255 204 153 255 204 153 255 204 153 255 204 153")
+        );
     }
 
     #[test]

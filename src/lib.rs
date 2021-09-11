@@ -7,7 +7,7 @@ pub mod point;
 pub mod utils;
 pub mod vector;
 
+pub use canvas::Canvas;
+pub use color::Color;
 pub use point::Point;
 pub use vector::Vector;
-pub use color::Color;
-pub use canvas::Canvas;
