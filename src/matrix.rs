@@ -175,7 +175,39 @@ impl Mul<Vector> for Matrix {
     }
 }
 
+impl Mul<Vector> for &Matrix {
+    type Output = Vector;
+
+    fn mul(self, other: Vector) -> Vector {
+        let x = other.x;
+        let y = other.y;
+        let z = other.z;
+
+        Vector {
+            x: x * self.get(0, 0) + y * self.get(0, 1) + z * self.get(0, 2),
+            y: x * self.get(1, 0) + y * self.get(1, 1) + z * self.get(1, 2),
+            z: x * self.get(2, 0) + y * self.get(2, 1) + z * self.get(2, 2),
+        }
+    }
+}
+
 impl Mul<Point> for Matrix {
+    type Output = Point;
+
+    fn mul(self, other: Point) -> Point {
+        let x = other.x;
+        let y = other.y;
+        let z = other.z;
+
+        Point {
+            x: x * self.get(0, 0) + y * self.get(0, 1) + z * self.get(0, 2) + self.get(0, 3),
+            y: x * self.get(1, 0) + y * self.get(1, 1) + z * self.get(1, 2) + self.get(1, 3),
+            z: x * self.get(2, 0) + y * self.get(2, 1) + z * self.get(2, 2) + self.get(2, 3),
+        }
+    }
+}
+
+impl Mul<Point> for &Matrix {
     type Output = Point;
 
     fn mul(self, other: Point) -> Point {
