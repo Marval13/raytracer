@@ -56,7 +56,7 @@ impl Matrix {
     }
 
     #[must_use]
-    pub fn submatrix(&self, row: usize, col: usize) -> Self {
+    fn submatrix(&self, row: usize, col: usize) -> Self {
         if row >= self.dimension || col >= self.dimension {
             panic!();
         }
@@ -95,12 +95,12 @@ impl Matrix {
     }
 
     #[must_use]
-    pub fn minor(&self, row: usize, col: usize) -> f64 {
+    fn minor(&self, row: usize, col: usize) -> f64 {
         self.submatrix(row, col).determinant()
     }
 
     #[must_use]
-    pub fn cofactor(&self, row: usize, col: usize) -> f64 {
+    fn cofactor(&self, row: usize, col: usize) -> f64 {
         self.minor(row, col) * if (row + col) % 2 == 0 { 1.0 } else { -1.0 }
     }
 

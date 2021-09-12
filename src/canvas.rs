@@ -6,9 +6,9 @@ use std::fs::File;
 use std::io::Write;
 
 pub struct Canvas {
-    pub width: usize,
-    pub height: usize,
-    pub canvas: Grid<Color>,
+    width: usize,
+    height: usize,
+    canvas: Grid<Color>,
 }
 
 impl Canvas {
@@ -28,7 +28,7 @@ impl Canvas {
 
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
-    pub fn to_ppm(&self) -> Vec<String> {
+    fn to_ppm(&self) -> Vec<String> {
         let mut ppm = vec![
             "P3".to_string(),
             format!("{} {}", self.width, self.height),
