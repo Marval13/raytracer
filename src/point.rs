@@ -1,5 +1,5 @@
 use crate::utils::equal;
-use crate::vector::Vector;
+use crate::Vector;
 
 use std::ops::{Add, Sub};
 
@@ -48,10 +48,10 @@ impl Sub<Vector> for Point {
 }
 
 impl Sub for Point {
-    type Output = Self;
+    type Output = Vector;
 
-    fn sub(self, other: Self) -> Self {
-        Self {
+    fn sub(self, other: Self) -> Vector {
+        Vector {
             x: self.x - other.x,
             y: self.y - other.y,
             z: self.z - other.z,
@@ -82,13 +82,13 @@ mod tests {
     fn point_sub_point() {
         let p1 = Point::new(3.0, 2.0, 1.0);
         let p2 = Point::new(5.0, 6.0, 7.0);
-        assert_eq!(p1 - p2, Point::new(-2.0, -4.0, -6.0));
+        assert_eq!(p1 - p2, Vector::new(-2.0, -4.0, -6.0));
     }
 
     #[test]
     fn point_sub_vector() {
-        let p1 = Point::new(3.0, 2.0, 1.0);
-        let p2 = Vector::new(5.0, 6.0, 7.0);
-        assert_eq!(p1 - p2, Point::new(-2.0, -4.0, -6.0));
+        let p = Point::new(3.0, 2.0, 1.0);
+        let v = Vector::new(5.0, 6.0, 7.0);
+        assert_eq!(p - v, Point::new(-2.0, -4.0, -6.0));
     }
 }
