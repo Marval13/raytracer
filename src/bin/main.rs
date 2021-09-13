@@ -1,55 +1,32 @@
-use raytracer::{Canvas, Color, Point, Vector};
+use std::f64::consts::PI;
 
-struct Projectile {
-    position: Point,
-    velocity: Vector,
-}
-
-struct Environment {
-    gravity: Vector,
-    wind: Vector,
-}
+use raytracer::{Canvas, Color, Intersection, Matrix, Point, Ray, Sphere, Vector};
 
 fn main() {
-    let mut c = Canvas::new(100, 100);
+    let origin = Point::new(0.0, 0.0, -5.0);
+    let wall_z = 10.0;
+    let wall_size = 7.0;
+    let canvas_size = 200;
+    let pixel_size = wall_size / canvas_size as f64;
+    let half = wall_size / 2.0;
+    let color = Color::new(1.0, 0.0, 0.0);
+    let t = Matrix::scaling(Vector::new(1.0, 0.5, 0.5));
+    let t = Matrix::rotation_z(PI / 12.0) * t;
+    let s = Sphere::new(t);
 
-    let mut p = Projectile {
-        position: Point::new(0.0, 99.0, 0.0),
-        velocity: Vector::new(5.0, -12.0, 0.0),
-    };
+    let mut c = Canvas::new(canvas_size, canvas_size);
 
-    let env = Environment {
-        gravity: Vector::new(0.0, 1.0, 0.0),
-        wind: Vector::new(-0.05, 0.0, 0.0),
-    };
-
-    c.write_pixel(
-        p.position.x as usize,
-        p.position.y as usize,
-        Color::new(1.0, 0.0, 0.0),
-    );
-
-    loop {
-        p = tick(&p, &env);
-        if p.position.x < 0.0
-            || p.position.x >= 100.0
-            || p.position.y < 0.0
-            || p.position.y >= 100.0
-        {
-            break;
+    for y in 0..canvas_size {
+        let world_y = half - pixel_size * y as f64;
+        for x in 0..canvas_size {
+            let world_x = half - pixel_size * x as f64;
+            let position = Point::new(world_x, world_y, wall_z);
+            let ray = Ray::new(origin, (position - origin).normalize());
+            if Intersection::hit(&ray.intersect(&s)).is_some() {
+                c.write_pixel(x, y, color);
+            }
         }
-        c.write_pixel(
-            p.position.x as usize,
-            p.position.y as usize,
-            Color::new(1.0, 0.0, 0.0),
-        );
     }
 
     c.save();
-}
-
-fn tick(p: &Projectile, env: &Environment) -> Projectile {
-    let position = p.position + p.velocity;
-    let velocity = p.velocity + env.gravity + env.wind;
-    Projectile { position, velocity }
 }
