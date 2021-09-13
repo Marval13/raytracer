@@ -43,6 +43,11 @@ impl Vector {
             z: self.x * other.y - self.y * other.x,
         }
     }
+
+    #[must_use]
+    pub fn reflect(&self, normal: &Self) -> Self {
+        *self - *normal * 2.0 * self.dot(normal)
+    }
 }
 
 impl PartialEq for Vector {
@@ -199,5 +204,21 @@ mod tests {
 
         assert_eq!(v1.cross(&v2), Vector::new(-1.0, 2.0, -1.0));
         assert_eq!(v2.cross(&v1), Vector::new(1.0, -2.0, 1.0));
+    }
+
+    #[test]
+    fn vector_reflect() {
+        let normal1 = Vector::new(0.0, 1.0, 0.0);
+        let normal2 = Vector::new(2_f64.sqrt() / 2.0, 2_f64.sqrt() / 2.0, 0.0);
+
+        assert_eq!(
+            Vector::new(1.0, -1.0, 0.0).reflect(&normal1),
+            Vector::new(1.0, 1.0, 0.0),
+        );
+
+        assert_eq!(
+            Vector::new(0.0, -1.0, 0.0).reflect(&normal2),
+            Vector::new(1.0, 0.0, 0.0),
+        );
     }
 }

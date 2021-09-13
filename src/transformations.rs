@@ -115,17 +115,13 @@ mod tests {
 
     #[test]
     fn translation_inverse() {
-        let t = Matrix::translation(Vector::new(5.0, -3.0, 2.0))
-            .inverse()
-            .unwrap();
+        let t = Matrix::translation(Vector::new(5.0, -3.0, 2.0)).inverse();
         assert_eq!(t * Point::new(2.0, 1.0, 7.0), Point::new(-3.0, 4.0, 5.0),);
     }
 
     #[test]
     fn translation_vector() {
-        let t = Matrix::translation(Vector::new(5.0, -3.0, 2.0))
-            .inverse()
-            .unwrap();
+        let t = Matrix::translation(Vector::new(5.0, -3.0, 2.0)).inverse();
         assert_eq!(t * Vector::new(2.0, 1.0, 7.0), Vector::new(2.0, 1.0, 7.0),);
     }
 
@@ -146,9 +142,7 @@ mod tests {
 
     #[test]
     fn scaling_inverse() {
-        let t = Matrix::scaling(Vector::new(2.0, 3.0, 4.0))
-            .inverse()
-            .unwrap();
+        let t = Matrix::scaling(Vector::new(2.0, 3.0, 4.0)).inverse();
         assert_eq!(t * Point::new(-8.0, 18.0, 32.0), Point::new(-4.0, 6.0, 8.0),);
     }
 
@@ -162,7 +156,7 @@ mod tests {
     fn rotation_x() {
         let t1 = Matrix::rotation_x(PI / 4.0);
         let t2 = Matrix::rotation_x(PI / 2.0);
-        let t3 = Matrix::rotation_x(PI / 4.0).inverse().unwrap();
+        let t3 = Matrix::rotation_x(PI / 4.0).inverse();
 
         assert_eq!(
             t1 * Point::new(0.0, 1.0, 0.0),

@@ -1,8 +1,8 @@
 use crate::{Intersection, Matrix, Point, Sphere, Vector};
 
 pub struct Ray {
-    origin: Point,
-    direction: Vector,
+    pub origin: Point,
+    pub direction: Vector,
 }
 
 impl Ray {
@@ -27,8 +27,8 @@ impl Ray {
 
     #[must_use]
     pub fn intersect<'a>(&self, s: &'a Sphere) -> Vec<Intersection<'a>> {
-        let ray = self.transform(&s.transform.inverse().unwrap());
-        let sphere_to_ray = ray.origin - Point::new(0.0, 0.0, 0.0);
+        let ray = self.transform(&s.transform.inverse());
+        let sphere_to_ray = ray.origin - Point::default();
         let a = ray.direction.dot(&ray.direction);
         let b = 2.0 * ray.direction.dot(&sphere_to_ray);
         let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
@@ -49,6 +49,7 @@ impl Ray {
 mod tests {
     use super::*;
     use crate::utils::equal;
+    use crate::Material;
 
     #[test]
     fn intersect_sphere_2_points() {
@@ -136,7 +137,10 @@ mod tests {
     #[test]
     fn intersect_translated_sphere() {
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        let s = Sphere::new(Matrix::translation(Vector::new(5.0, 0.0, 0.0)));
+        let s = Sphere::new(
+            Matrix::translation(Vector::new(5.0, 0.0, 0.0)),
+            Material::default(),
+        );
         let intersections = r.intersect(&s);
 
         assert_eq!(intersections.len(), 0);
@@ -145,7 +149,10 @@ mod tests {
     #[test]
     fn intersect_scaled_sphere() {
         let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
-        let s = Sphere::new(Matrix::scaling(Vector::new(2.0, 2.0, 2.0)));
+        let s = Sphere::new(
+            Matrix::scaling(Vector::new(2.0, 2.0, 2.0)),
+            Material::default(),
+        );
         let intersections = r.intersect(&s);
 
         assert_eq!(intersections.len(), 2);

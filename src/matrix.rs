@@ -105,10 +105,11 @@ impl Matrix {
     }
 
     #[must_use]
-    pub fn inverse(&self) -> Option<Matrix> {
+    pub fn inverse(&self) -> Matrix {
         let determinant = self.determinant();
         if determinant == 0.0 {
-            return None;
+            //return None;
+            panic!();
         }
 
         let mut grid = Grid::new(self.dimension, self.dimension);
@@ -118,10 +119,16 @@ impl Matrix {
             }
         }
 
-        Some(Matrix {
+        Matrix {
             dimension: self.dimension,
             grid,
-        })
+        }
+    }
+}
+
+impl Default for Matrix {
+    fn default() -> Self {
+        Self::eye(4)
     }
 }
 
@@ -495,10 +502,10 @@ mod tests {
             0.17778, 0.06667, -0.26667, 0.33333,
         ]);
 
-        assert_eq!(m1.inverse().unwrap(), m2);
-        assert_eq!(m3.inverse().unwrap(), m4);
-        assert_eq!(m5.inverse().unwrap(), m6);
-        assert_eq!(m1.inverse().unwrap().inverse().unwrap(), m1);
-        assert_eq!(m3.inverse().unwrap() * m3, Matrix::eye(4));
+        assert_eq!(m1.inverse(), m2);
+        assert_eq!(m3.inverse(), m4);
+        assert_eq!(m5.inverse(), m6);
+        assert_eq!(m1.inverse().inverse(), m1);
+        assert_eq!(m3.inverse() * m3, Matrix::eye(4));
     }
 }
