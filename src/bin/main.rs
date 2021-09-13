@@ -1,8 +1,6 @@
-use std::f64::consts::PI;
 use raytracer::Vector;
-use raytracer::{
-    Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere,
-};
+use raytracer::{Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere};
+use std::f64::consts::PI;
 
 use std::path::Path;
 

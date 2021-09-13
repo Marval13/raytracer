@@ -8,10 +8,10 @@ pub struct Sphere {
 
 impl Sphere {
     #[must_use]
-    pub fn new(t: Matrix, m: Material) -> Self {
+    pub fn new(transform: Matrix, material: Material) -> Self {
         let mut s = Self::default();
-        s.set_transform(t);
-        s.set_material(m);
+        s.set_transform(transform);
+        s.set_material(material);
         s
     }
 

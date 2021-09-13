@@ -1,9 +1,19 @@
-use crate::Sphere;
+use crate::{Point, Ray, Sphere, Vector};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Intersection<'a> {
     pub t: f64,
     pub object: &'a Sphere,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Computations<'a> {
+    pub t: f64,
+    pub object: &'a Sphere,
+    pub point: Point,
+    pub eyev: Vector,
+    pub normal: Vector,
+    pub inside: bool,
 }
 
 impl<'a> Intersection<'a> {
@@ -20,6 +30,23 @@ impl<'a> Intersection<'a> {
             .min_by(|i, j| i.t.partial_cmp(&j.t).unwrap())?;
 
         Some(*i)
+    }
+
+    #[must_use]
+    pub fn prepare_computations(&self, ray: &Ray) -> Computations {
+        let point = ray.position(self.t);
+        let eyev = -ray.direction;
+        let normal = self.object.normal_at(point);
+        let inside = normal.dot(&eyev) < 0.0;
+
+        Computations {
+            t: self.t,
+            object: self.object,
+            point,
+            eyev,
+            normal: if inside { -normal } else { normal },
+            inside,
+        }
     }
 }
 
@@ -75,5 +102,32 @@ mod tests {
         let i = Intersection::hit(&intersections).unwrap();
 
         assert_eq!(i.t, 2.0);
+    }
+
+    #[test]
+    fn precomputations() {
+        let ray = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let i = ray.intersect(&s)[0];
+        let comps = i.prepare_computations(&ray);
+
+        assert_eq!(comps.t, i.t);
+        assert_eq!(comps.object, i.object);
+        assert_eq!(comps.point, Point::new(0.0, 0.0, -1.0));
+        assert_eq!(comps.eyev, Vector::new(0.0, 0.0, -1.0));
+        assert_eq!(comps.normal, Vector::new(0.0, 0.0, -1.0));
+    }
+
+    #[test]
+    fn precomputations_inside() {
+        let ray = Ray::new(Point::default(), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let i = Intersection::new(1.0, &s);
+        let comps = i.prepare_computations(&ray);
+
+        assert_eq!(comps.point, Point::new(0.0, 0.0, 1.0));
+        assert_eq!(comps.eyev, Vector::new(0.0, 0.0, -1.0));
+        assert_eq!(comps.normal, Vector::new(0.0, 0.0, -1.0));
+        assert!(comps.inside);
     }
 }

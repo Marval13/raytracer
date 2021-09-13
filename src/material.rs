@@ -45,11 +45,11 @@ impl Material {
     }
 
     #[must_use]
-    pub fn lighting(&self, point: Point, light: PointLight, eye: Vector, normal: Vector) -> Color {
+    pub fn lighting(&self, point: Point, light: PointLight, eyev: Vector, normal: Vector) -> Color {
         let effective_color = self.color * light.intensity;
         let lightv = (light.position - point).normalize();
         let ambient = effective_color * self.ambient;
-        let light_dot_normal = lightv.dot(&normal); //TODO: change vector operations
+        let light_dot_normal = lightv.dot(&normal);
 
         let diffuse;
         let specular;
@@ -60,7 +60,7 @@ impl Material {
         } else {
             diffuse = effective_color * self.diffuse * light_dot_normal;
             let reflectv = (-lightv).reflect(&normal);
-            let reflect_dot_eye = reflectv.dot(&eye);
+            let reflect_dot_eye = reflectv.dot(&eyev);
             if reflect_dot_eye <= 0.0 {
                 specular = Color::black();
             } else {

@@ -9,6 +9,24 @@ pub struct Vector {
     pub z: f64,
 }
 
+pub static X: Vector = Vector {
+    x: 1.0,
+    y: 0.0,
+    z: 0.0,
+};
+
+pub static Y: Vector = Vector {
+    x: 0.0,
+    y: 1.0,
+    z: 0.0,
+};
+
+pub static Z: Vector = Vector {
+    x: 0.0,
+    y: 0.0,
+    z: 1.0,
+};
+
 impl Vector {
     #[must_use]
     pub fn new(x: f64, y: f64, z: f64) -> Self {

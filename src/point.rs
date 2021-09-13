@@ -10,6 +10,24 @@ pub struct Point {
     pub z: f64,
 }
 
+pub static UX: Point = Point {
+    x: 1.0,
+    y: 0.0,
+    z: 0.0,
+};
+
+pub static UY: Point = Point {
+    x: 0.0,
+    y: 1.0,
+    z: 0.0,
+};
+
+pub static UZ: Point = Point {
+    x: 0.0,
+    y: 0.0,
+    z: 1.0,
+};
+
 impl Point {
     #[must_use]
     pub fn new(x: f64, y: f64, z: f64) -> Self {

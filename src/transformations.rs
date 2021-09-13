@@ -1,11 +1,11 @@
-use crate::{Matrix, Vector};
+use crate::{Matrix, Point, Vector};
 
 use grid::Grid;
 
 impl Matrix {
-    #[rustfmt::skip]
     #[must_use]
     pub fn translation(v: Vector) -> Self {
+        #[rustfmt::skip]
         let v_grid = vec![
             1.0, 0.0, 0.0, v.x,
             0.0, 1.0, 0.0, v.y,
@@ -19,9 +19,9 @@ impl Matrix {
         }
     }
 
-    #[rustfmt::skip]
     #[must_use]
     pub fn scaling(v: Vector) -> Self {
+        #[rustfmt::skip]
         let v_grid = vec![
             v.x, 0.0, 0.0, 0.0,
             0.0, v.y, 0.0, 0.0,
@@ -35,9 +35,9 @@ impl Matrix {
         }
     }
 
-    #[rustfmt::skip]
     #[must_use]
     pub fn rotation_x(angle: f64) -> Self {
+        #[rustfmt::skip]
         let v_grid = vec![
             1.0, 0.0, 0.0, 0.0,
             0.0, angle.cos(), -angle.sin(), 0.0,
@@ -51,9 +51,9 @@ impl Matrix {
         }
     }
 
-    #[rustfmt::skip]
     #[must_use]
     pub fn rotation_y(angle: f64) -> Self {
+        #[rustfmt::skip]
         let v_grid = vec![
             angle.cos(), 0.0, angle.sin(), 0.0,
             0.0, 1.0, 0.0, 0.0,
@@ -67,9 +67,9 @@ impl Matrix {
         }
     }
 
-    #[rustfmt::skip]
     #[must_use]
     pub fn rotation_z(angle: f64) -> Self {
+        #[rustfmt::skip]
         let v_grid = vec![
             angle.cos(), -angle.sin(), 0.0, 0.0,
             angle.sin(), angle.cos(), 0.0, 0.0,
@@ -83,9 +83,9 @@ impl Matrix {
         }
     }
 
-    #[rustfmt::skip]
     #[must_use]
     pub fn shearing(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> Self {
+        #[rustfmt::skip]
         let v_grid = vec![
             1.0, xy, xz, 0.0,
             yx, 1.0, yz, 0.0,
@@ -98,12 +98,34 @@ impl Matrix {
             grid: Grid::from_vec(v_grid, 4),
         }
     }
+
+    #[must_use]
+    pub fn view_transform(from: Point, to: Point, up: Vector) -> Self {
+        let f = (to - from).normalize();
+        let l = f.cross(&up.normalize());
+        let u = l.cross(&f);
+
+        #[rustfmt::skip]
+        let v_grid = vec![
+            l.x,  l.y,  l.z,  0.0,
+            u.x,  u.y,  u.z,  0.0,
+            -f.x, -f.y, -f.z, 0.0,
+            0.0,  0.0,  0.0,  1.0,
+        ];
+
+        let orientation = Self {
+            dimension: 4,
+            grid: Grid::from_vec(v_grid, 4),
+        };
+
+        orientation * Matrix::translation(Vector::new(-from.x, -from.y, -from.z))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Point;
+    use crate::vector;
 
     use std::f64::consts::PI;
 
@@ -217,5 +239,38 @@ mod tests {
         assert_eq!(t5 * Point::new(2.0, 3.0, 4.0), Point::new(2.0, 3.0, 6.0));
 
         assert_eq!(t6 * Point::new(2.0, 3.0, 4.0), Point::new(2.0, 3.0, 7.0));
+    }
+
+    #[test]
+    fn view_transform() {
+        assert_eq!(
+            Matrix::view_transform(Point::default(), Point::new(0.0, 0.0, -1.0), vector::Y),
+            Matrix::default(),
+        );
+
+        assert_eq!(
+            Matrix::view_transform(Point::default(), Point::new(0.0, 0.0, 1.0), vector::Y),
+            Matrix::scaling(Vector::new(-1.0, 1.0, -1.0)),
+        );
+
+        assert_eq!(
+            Matrix::view_transform(Point::new(0.0, 0.0, 8.0), Point::default(), vector::Y),
+            Matrix::translation(Vector::new(0.0, 0.0, -8.0)),
+        );
+
+        #[rustfmt::skip]
+        assert_eq!(
+            Matrix::view_transform(
+                Point::new(1.0, 3.0, 2.0),
+                Point::new(4.0, -2.0, 8.0),
+                vector::Y + vector::X,
+            ),
+            Matrix::new(4, vec![
+                -0.50709, 0.50709, 0.67612, -2.36643,
+                0.76772, 0.60609, 0.12122, -2.82843,
+                -0.35857, 0.59761, -0.71714, 0.00000,
+                0.00000, 0.00000, 0.00000, 1.00000,
+            ]),
+        );
     }
 }
