@@ -4,6 +4,7 @@ use grid::Grid;
 
 use std::fs::File;
 use std::io::Write;
+use std::path::Path;
 
 pub struct Canvas {
     width: usize,
@@ -70,8 +71,8 @@ impl Canvas {
         ppm
     }
 
-    pub fn save(&self) {
-        let mut file = File::create("img.ppm").expect("create failed");
+    pub fn save(&self, path: &Path) {
+        let mut file = File::create(path).expect("create failed");
         for line in &self.to_ppm() {
             file.write_all(line.as_bytes()).expect("write failed");
             file.write_all(b"\n").expect("write failed");

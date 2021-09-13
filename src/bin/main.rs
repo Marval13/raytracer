@@ -1,10 +1,10 @@
-//use std::f64::consts::PI;
-//use raytracer::Vector;
+use std::f64::consts::PI;
+use raytracer::Vector;
 use raytracer::{
     Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere,
 };
 
-
+use std::path::Path;
 
 fn main() {
     let origin = Point::new(0.0, 0.0, -5.0);
@@ -14,16 +14,13 @@ fn main() {
     let pixel_size = wall_size / canvas_size as f64;
     let half = wall_size / 2.0;
 
-    //let transform = Matrix::scaling(Vector::new(1.0, 0.5, 0.5));
-    //let transform = Matrix::rotation_z(PI / 12.0) * transform;
+    let transform = Matrix::scaling(Vector::new(1.0, 0.5, 0.5));
+    let transform = Matrix::rotation_z(PI / 12.0) * transform;
     let material = Material {
         color: Color::new(1.0, 0.2, 1.0),
-        //shininess: 10.0,
-        //specular: 0.1,
-        //diffuse: 0.5,
         ..Default::default()
     };
-    let sphere = Sphere::new(Matrix::default(), material);
+    let sphere = Sphere::new(transform, material);
 
     let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::white());
 
@@ -48,5 +45,5 @@ fn main() {
         }
     }
 
-    c.save();
+    c.save(Path::new("./renders/chapter6.ppm"));
 }
