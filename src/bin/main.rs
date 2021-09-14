@@ -1,4 +1,4 @@
-use raytracer::{point, vector, Camera, Vector, World};
+use raytracer::{point, vector, Camera, Shape, Vector, World};
 use raytracer::{Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere};
 use std::f64::consts::PI;
 

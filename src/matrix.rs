@@ -1,6 +1,5 @@
 use crate::utils::equal;
-use crate::Point;
-use crate::Vector;
+use crate::{Point, Vector};
 
 use grid::Grid;
 

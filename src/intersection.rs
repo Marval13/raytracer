@@ -1,5 +1,5 @@
 use crate::utils::EPSILON;
-use crate::{Point, Ray, Sphere, Vector};
+use crate::{Point, Ray, Shape, Sphere, Vector};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Intersection<'a> {

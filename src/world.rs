@@ -91,11 +91,9 @@ pub(crate) mod test_world {
 
 #[cfg(test)]
 mod tests {
-    use crate::{vector, Matrix};
-    use crate::{Material, Point};
-
     use super::test_world::test_world;
     use super::*;
+    use crate::{vector, Material, Matrix};
 
     #[test]
     fn new_world() {

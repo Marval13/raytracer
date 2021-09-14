@@ -71,9 +71,9 @@ impl Camera {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::utils::equal;
     use crate::world::test_world::test_world;
-    use crate::Color;
-    use crate::{utils::equal, vector, Point, Vector};
+    use crate::{vector, Color, Vector};
     use std::f64::consts::PI;
 
     #[test]

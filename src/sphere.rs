@@ -1,4 +1,4 @@
-use crate::{Material, Matrix, Point, Vector};
+use crate::{Intersection, Material, Matrix, Point, Ray, Shape, Vector};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Sphere {
@@ -14,22 +14,6 @@ impl Sphere {
         s.set_material(material);
         s
     }
-
-    pub fn set_transform(&mut self, transform: Matrix) {
-        self.transform = transform;
-    }
-
-    pub fn set_material(&mut self, material: Material) {
-        self.material = material;
-    }
-
-    #[must_use]
-    pub fn normal_at(&self, point: Point) -> Vector {
-        let object_point = self.transform.inverse() * point;
-        let object_normal = (object_point - Point::default()).normalize();
-        let world_normal = self.transform.inverse().transpose() * object_normal;
-        world_normal.normalize()
-    }
 }
 
 impl Default for Sphere {
@@ -41,51 +25,72 @@ impl Default for Sphere {
     }
 }
 
+impl Shape for Sphere {
+    fn get_transform(&self) -> &Matrix {
+        &self.transform
+    }
+
+    fn set_transform(&mut self, transform: Matrix) {
+        self.transform = transform;
+    }
+
+    fn get_material(&self) -> &Material {
+        &self.material
+    }
+
+    fn set_material(&mut self, material: Material) {
+        self.material = material;
+    }
+
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
+        let sphere_to_ray = ray.origin - Point::default();
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * ray.direction.dot(&sphere_to_ray);
+        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
+
+        let discriminant = b * b - 4.0 * a * c;
+
+        if discriminant < 0.0 {
+            Vec::new()
+        } else {
+            vec![
+                Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self),
+                Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self),
+            ]
+        }
+    }
+
+    fn local_normal_at(&self, point: Point) -> Vector {
+        (point - Point::default()).normalize()
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::Color;
-
     use super::*;
-    use std::f64::consts::PI;
-
-    #[test]
-    fn new_transform() {
-        let mut s = Sphere::default();
-        let t = Matrix::translation(Vector::new(2.0, 3.0, 4.0));
-        s.set_transform(t);
-
-        assert_eq!(s.transform, Matrix::translation(Vector::new(2.0, 3.0, 4.0)));
-    }
-
-    #[test]
-    fn new_sphere() {
-        let t = Matrix::translation(Vector::new(2.0, 3.0, 4.0));
-        let s = Sphere::new(t, Material::default());
-
-        assert_eq!(s.transform, Matrix::translation(Vector::new(2.0, 3.0, 4.0)));
-    }
+    use crate::utils::equal;
 
     #[test]
     fn sphere_normals() {
         let s = Sphere::default();
 
         assert_eq!(
-            s.normal_at(Point::new(1.0, 0.0, 0.0)),
+            s.local_normal_at(Point::new(1.0, 0.0, 0.0)),
             Vector::new(1.0, 0.0, 0.0)
         );
 
         assert_eq!(
-            s.normal_at(Point::new(0.0, 1.0, 0.0)),
+            s.local_normal_at(Point::new(0.0, 1.0, 0.0)),
             Vector::new(0.0, 1.0, 0.0)
         );
 
         assert_eq!(
-            s.normal_at(Point::new(0.0, 0.0, 1.0)),
+            s.local_normal_at(Point::new(0.0, 0.0, 1.0)),
             Vector::new(0.0, 0.0, 1.0)
         );
 
         assert_eq!(
-            s.normal_at(Point::new(
+            s.local_normal_at(Point::new(
                 3_f64.sqrt() / 3.0,
                 3_f64.sqrt() / 3.0,
                 3_f64.sqrt() / 3.0
@@ -95,61 +100,63 @@ mod tests {
     }
 
     #[test]
-    fn normalized_normals() {
+    fn intersect_2_points() {
+        let r = Ray::new(Point::new(0.0, 0.0, -5.0), Vector::new(0.0, 0.0, 1.0));
         let s = Sphere::default();
+        let intersections = s.local_intersect(&r);
 
-        assert_eq!(
-            s.normal_at(Point::new(
-                3_f64.sqrt() / 3.0,
-                3_f64.sqrt() / 3.0,
-                3_f64.sqrt() / 3.0
-            )),
-            s.normal_at(Point::new(
-                3_f64.sqrt() / 3.0,
-                3_f64.sqrt() / 3.0,
-                3_f64.sqrt() / 3.0
-            ))
-            .normalize(),
-        );
+        assert_eq!(intersections.len(), 2);
+        assert!(equal(intersections[0].t, 4.0));
+        assert!(equal(intersections[1].t, 6.0));
+        assert_eq!(intersections[0].object, &s);
+        assert_eq!(intersections[1].object, &s);
     }
 
     #[test]
-    fn translated_sphere_normals() {
-        let s = Sphere::new(
-            Matrix::translation(Vector::new(0.0, 1.0, 0.0)),
-            Material::default(),
-        );
+    fn intersect_sphere_1_point() {
+        let r = Ray::new(Point::new(0.0, 1.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let intersections = s.local_intersect(&r);
 
-        assert_eq!(
-            s.normal_at(Point::new(0.0, 1.70711, -0.70711)),
-            Vector::new(0.0, 0.70711, -0.70711)
-        );
+        assert_eq!(intersections.len(), 2);
+        assert!(equal(intersections[0].t, 5.0));
+        assert!(equal(intersections[1].t, 5.0));
+        assert_eq!(intersections[0].object, &s);
+        assert_eq!(intersections[1].object, &s);
     }
 
     #[test]
-    fn transformed_sphere_normals() {
-        let s = Sphere::new(
-            Matrix::scaling(Vector::new(1.0, 0.5, 1.0)) * Matrix::rotation_z(PI / 5.0),
-            Material::default(),
-        );
+    fn intersect_0_points() {
+        let r = Ray::new(Point::new(0.0, 2.0, -5.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let intersections = s.local_intersect(&r);
 
-        assert_eq!(
-            s.normal_at(Point::new(0.0, 2_f64.sqrt() / 2.0, 2_f64.sqrt() / -2.0)),
-            Vector::new(0.0, 0.97014, -0.24254)
-        );
+        assert!(intersections.is_empty());
     }
 
     #[test]
-    fn sphere_material() {
-        let s1 = Sphere::default();
-        assert_eq!(s1.material, Material::default());
+    fn intersect_inside() {
+        let r = Ray::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let intersections = s.local_intersect(&r);
 
-        let m = Material::new(Color::new(0.3, 0.6, 0.8), 0.2, 0.5, 0.6, 20.0);
-        let s2 = Sphere::new(Matrix::default(), m);
+        assert_eq!(intersections.len(), 2);
+        assert!(equal(intersections[0].t, -1.0));
+        assert!(equal(intersections[1].t, 1.0));
+        assert_eq!(intersections[0].object, &s);
+        assert_eq!(intersections[1].object, &s);
+    }
 
-        assert_eq!(
-            s2.material,
-            Material::new(Color::new(0.3, 0.6, 0.8), 0.2, 0.5, 0.6, 20.0)
-        );
+    #[test]
+    fn intersect_behind() {
+        let r = Ray::new(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));
+        let s = Sphere::default();
+        let intersections = s.local_intersect(&r);
+
+        assert_eq!(intersections.len(), 2);
+        assert!(equal(intersections[0].t, -6.0));
+        assert!(equal(intersections[1].t, -4.0));
+        assert_eq!(intersections[0].object, &s);
+        assert_eq!(intersections[1].object, &s);
     }
 }

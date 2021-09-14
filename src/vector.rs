@@ -68,6 +68,12 @@ impl Vector {
     }
 }
 
+impl Default for Vector {
+    fn default() -> Self {
+        X
+    }
+}
+
 impl PartialEq for Vector {
     fn eq(&self, other: &Self) -> bool {
         equal(self.x, other.x) && equal(self.y, other.y) && equal(self.z, other.z)
