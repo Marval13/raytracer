@@ -1,10 +1,15 @@
-use raytracer::Vector;
+use raytracer::{point, vector, Camera, Vector, World};
 use raytracer::{Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere};
 use std::f64::consts::PI;
 
 use std::path::Path;
 
 fn main() {
+    chapter7();
+}
+
+#[allow(dead_code)]
+fn chapter6() {
     let origin = Point::new(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
@@ -44,4 +49,69 @@ fn main() {
     }
 
     c.save(Path::new("./renders/chapter6.ppm"));
+}
+
+fn chapter7() {
+    let matte_gray = Material {
+        color: Color::new(1.0, 0.9, 0.9),
+        specular: 0.0,
+        ..Default::default()
+    };
+
+    let left_wall_transform = Matrix::translation(vector::Z * 5.0)
+        * Matrix::rotation_y(-PI / 4.0)
+        * Matrix::rotation_x(PI / 2.0)
+        * Matrix::scaling(Vector::new(10.0, 0.01, 10.0));
+
+    let right_wall_transform = Matrix::translation(vector::Z * 5.0)
+        * Matrix::rotation_y(PI / 4.0)
+        * Matrix::rotation_x(PI / 2.0)
+        * Matrix::scaling(Vector::new(10.0, 0.01, 10.0));
+
+    let floor = Sphere::new(Matrix::scaling(Vector::new(10.0, 0.01, 10.0)), matte_gray);
+    let left_wall = Sphere::new(left_wall_transform, matte_gray);
+    let right_wall = Sphere::new(right_wall_transform, matte_gray);
+
+    let sphere1 = Sphere::new(
+        Matrix::translation(Vector::new(-0.5, 1.0, 0.5)),
+        Material {
+            color: Color::new(0.1, 1.0, 0.5),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    );
+
+    let sphere2 = Sphere::new(
+        Matrix::translation(Vector::new(1.5, 0.5, -0.5))
+            * Matrix::scaling(Vector::new(0.5, 0.5, 0.5)),
+        Material {
+            color: Color::new(0.5, 1.0, 0.1),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    );
+
+    let sphere3 = Sphere::new(
+        Matrix::translation(Vector::new(-1.5, 0.33, -0.75))
+            * Matrix::scaling(Vector::new(0.33, 0.33, 0.33)),
+        Material {
+            color: Color::new(1.0, 0.8, 0.1),
+            diffuse: 0.7,
+            specular: 0.3,
+            ..Default::default()
+        },
+    );
+
+    let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::white());
+
+    let world = World::new(
+        vec![floor, left_wall, right_wall, sphere1, sphere2, sphere3],
+        light,
+    );
+    let mut camera = Camera::new(500, 250, PI / 3.0);
+    camera.transform = Matrix::view_transform(Point::new(0.0, 1.5, -5.0), point::UY, vector::Y);
+
+    camera.render(&world).save(Path::new("./renders/chapter7.ppm"));
 }
