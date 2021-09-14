@@ -1,4 +1,4 @@
-use raytracer::{point, vector, Camera, Shape, Vector, World};
+use raytracer::{point, vector, Camera, Object, Shape, Vector, World};
 use raytracer::{Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere};
 use std::f64::consts::PI;
 
@@ -43,7 +43,7 @@ fn chapter6() {
 
                 let color = hit
                     .object
-                    .material
+                    .get_material()
                     .lighting(point, light, eye, normal, false);
 
                 c.write_pixel(x, y, color);
@@ -110,7 +110,14 @@ fn chapter7() {
     let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::white());
 
     let world = World::new(
-        vec![floor, left_wall, right_wall, sphere1, sphere2, sphere3],
+        vec![
+            Object::Sphere(floor),
+            Object::Sphere(left_wall),
+            Object::Sphere(right_wall),
+            Object::Sphere(sphere1),
+            Object::Sphere(sphere2),
+            Object::Sphere(sphere3),
+        ],
         light,
     );
     let mut camera = Camera::new(500, 250, PI / 3.0);

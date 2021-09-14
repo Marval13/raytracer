@@ -26,7 +26,7 @@ impl Ray {
     }
 
     #[must_use]
-    pub fn intersect<'a, T: Shape>(&self, shape: &'a T) -> Vec<Intersection<'a>> {
+    pub fn intersect<T: Shape>(&self, shape: &T) -> Vec<Intersection> {
         let ray = self.transform(&shape.get_transform().inverse());
         shape.local_intersect(&ray)
     }

@@ -1,7 +1,5 @@
 use crate::{Matrix, Point, Vector};
 
-use grid::Grid;
-
 impl Matrix {
     #[must_use]
     pub fn translation(v: Vector) -> Self {
@@ -13,10 +11,7 @@ impl Matrix {
             0.0, 0.0, 0.0, 1.0,
         ];
 
-        Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        }
+        Self::new(4, v_grid)
     }
 
     #[must_use]
@@ -29,10 +24,7 @@ impl Matrix {
             0.0, 0.0, 0.0, 1.0,
         ];
 
-        Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        }
+        Self::new(4, v_grid)
     }
 
     #[must_use]
@@ -45,10 +37,7 @@ impl Matrix {
             0.0, 0.0, 0.0, 1.0,
         ];
 
-        Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        }
+        Self::new(4, v_grid)
     }
 
     #[must_use]
@@ -61,10 +50,7 @@ impl Matrix {
             0.0, 0.0, 0.0, 1.0,
         ];
 
-        Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        }
+        Self::new(4, v_grid)
     }
 
     #[must_use]
@@ -77,10 +63,7 @@ impl Matrix {
             0.0, 0.0, 0.0, 1.0,
         ];
 
-        Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        }
+        Self::new(4, v_grid)
     }
 
     #[must_use]
@@ -93,10 +76,7 @@ impl Matrix {
             0.0, 0.0, 0.0, 1.0,
         ];
 
-        Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        }
+        Self::new(4, v_grid)
     }
 
     #[must_use]
@@ -113,10 +93,7 @@ impl Matrix {
             0.0,  0.0,  0.0,  1.0,
         ];
 
-        let orientation = Self {
-            dimension: 4,
-            grid: Grid::from_vec(v_grid, 4),
-        };
+        let orientation = Self::new(4, v_grid);
 
         orientation * Matrix::translation(Vector::new(-from.x, -from.y, -from.z))
     }

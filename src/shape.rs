@@ -1,12 +1,17 @@
-use crate::{Intersection, Material, Matrix, Point, Ray, Vector};
+use crate::{Intersection, Material, Matrix, Point, Ray, Sphere, Vector};
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Object {
+    Sphere(Sphere),
+}
 
 pub trait Shape: Default {
     #[must_use]
-    fn get_transform(&self) -> &Matrix;
+    fn get_transform(&self) -> Matrix;
     fn set_transform(&mut self, transform: Matrix);
 
     #[must_use]
-    fn get_material(&self) -> &Material;
+    fn get_material(&self) -> Material;
     fn set_material(&mut self, material: Material);
 
     fn local_normal_at(&self, point: Point) -> Vector;
@@ -32,6 +37,50 @@ pub trait Shape: Default {
     }
 }
 
+impl Default for Object {
+    fn default() -> Self {
+        Self::Sphere(Sphere::default())
+    }
+}
+
+impl Shape for Object {
+    fn get_transform(&self) -> Matrix {
+        match *self {
+            Object::Sphere(o) => o.get_transform(),
+        }
+    }
+
+    fn set_transform(&mut self, transform: Matrix) {
+        match self {
+            Object::Sphere(o) => o.set_transform(transform),
+        }
+    }
+
+    fn get_material(&self) -> Material {
+        match *self {
+            Object::Sphere(o) => o.get_material(),
+        }
+    }
+
+    fn set_material(&mut self, material: Material) {
+        match self {
+            Object::Sphere(o) => o.set_material(material),
+        }
+    }
+
+    fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
+        match self {
+            Object::Sphere(o) => o.local_intersect(ray),
+        }
+    }
+
+    fn local_normal_at(&self, point: Point) -> Vector {
+        match self {
+            Object::Sphere(o) => o.local_normal_at(point),
+        }
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod testshape {
     use super::*;
@@ -44,16 +93,16 @@ pub(crate) mod testshape {
     }
 
     impl Shape for TestShape {
-        fn get_transform(&self) -> &Matrix {
-            &self.transform
+        fn get_transform(&self) -> Matrix {
+            self.transform
         }
 
         fn set_transform(&mut self, transform: Matrix) {
             self.transform = transform;
         }
 
-        fn get_material(&self) -> &Material {
-            &self.material
+        fn get_material(&self) -> Material {
+            self.material
         }
 
         fn set_material(&mut self, material: Material) {
@@ -86,16 +135,16 @@ mod tests {
     }
 
     impl Shape for TestShape {
-        fn get_transform(&self) -> &Matrix {
-            &self.transform
+        fn get_transform(&self) -> Matrix {
+            self.transform
         }
 
         fn set_transform(&mut self, transform: Matrix) {
             self.transform = transform;
         }
 
-        fn get_material(&self) -> &Material {
-            &self.material
+        fn get_material(&self) -> Material {
+            self.material
         }
 
         fn set_material(&mut self, material: Material) {
@@ -122,16 +171,16 @@ mod tests {
     #[test]
     fn shapes_have_transforms() {
         let mut s = TestShape::default();
-        assert_eq!(s.get_transform(), &Matrix::default());
+        assert_eq!(s.get_transform(), Matrix::default());
 
         s.set_transform(Matrix::rotation_y(2.0).inverse());
-        assert_eq!(s.get_transform(), &Matrix::rotation_y(-2.0));
+        assert_eq!(s.get_transform(), Matrix::rotation_y(-2.0));
     }
 
     #[test]
     fn shapes_have_materials() {
         let mut s = TestShape::default();
-        assert_eq!(s.get_material(), &Material::default());
+        assert_eq!(s.get_material(), Material::default());
 
         s.set_material(Material::new(Color::black(), 0.0, 0.5, 1.0, 50.0));
         assert_eq!(s.get_material().color, Color::black());

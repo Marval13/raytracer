@@ -1,14 +1,14 @@
-use crate::{Color, Computations, Intersection, Point, PointLight, Ray, Sphere};
+use crate::{Color, Computations, Intersection, Object, Point, PointLight, Ray, Shape};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct World {
-    pub objects: Vec<Sphere>,
+    pub objects: Vec<Object>,
     pub light: PointLight,
 }
 
 impl World {
     #[must_use]
-    pub fn new(objects: Vec<Sphere>, light: PointLight) -> Self {
+    pub fn new(objects: Vec<Object>, light: PointLight) -> Self {
         Self { objects, light }
     }
 
@@ -26,7 +26,7 @@ impl World {
 
     #[must_use]
     pub fn shade_hit(&self, comps: Computations) -> Color {
-        comps.object.material.lighting(
+        comps.object.get_material().lighting(
             comps.point,
             self.light,
             comps.eyev,
@@ -65,7 +65,7 @@ impl Default for World {
 
 #[cfg(test)]
 pub(crate) mod test_world {
-    use crate::{Material, Matrix, Point, Vector};
+    use crate::{Material, Matrix, Point, Sphere, Vector};
 
     use super::*;
 
@@ -78,12 +78,12 @@ pub(crate) mod test_world {
             specular: 0.2,
             ..Default::default()
         };
-        let s1 = Sphere::new(Matrix::default(), m1);
+        let s1 = Object::Sphere(Sphere::new(Matrix::default(), m1));
 
-        let s2 = Sphere::new(
+        let s2 = Object::Sphere(Sphere::new(
             Matrix::scaling(Vector::new(0.5, 0.5, 0.5)),
             Material::default(),
-        );
+        ));
 
         World::new(vec![s1, s2], light)
     }
@@ -93,7 +93,7 @@ pub(crate) mod test_world {
 mod tests {
     use super::test_world::test_world;
     use super::*;
-    use crate::{vector, Material, Matrix};
+    use crate::{vector, Material, Matrix, Sphere};
 
     #[test]
     fn new_world() {
@@ -108,7 +108,7 @@ mod tests {
         let world = test_world();
 
         assert_eq!(world.objects.len(), 2);
-        assert_eq!(world.objects[1].material, Material::default());
+        assert_eq!(world.objects[1].get_material(), Material::default());
     }
 
     #[test]
@@ -128,8 +128,8 @@ mod tests {
     fn shade_outside() {
         let world = test_world();
         let ray = Ray::new(Point::new(0.0, 0.0, -5.0), vector::Z);
-        let s = &world.objects[0];
-        let i = Intersection::new(4.0, s);
+        let s = world.objects[0];
+        let i = Intersection::new(4.0, &s);
         let comps = i.prepare_computations(&ray);
 
         assert_eq!(world.shade_hit(comps), Color::new(0.38066, 0.47583, 0.2855));
@@ -171,10 +171,16 @@ mod tests {
         let mut world = test_world();
         let ray = Ray::new(Point::new(0.0, 0.0, 0.75), -vector::Z);
 
-        world.objects[0].material.ambient = 1.0;
-        world.objects[1].material.ambient = 1.0;
+        world.objects[0].set_material(Material {
+            ambient: 1.0,
+            ..Default::default()
+        });
+        world.objects[1].set_material(Material {
+            ambient: 1.0,
+            ..Default::default()
+        });
 
-        assert_eq!(world.color_at(&ray), world.objects[1].material.color);
+        assert_eq!(world.color_at(&ray), world.objects[1].get_material().color);
     }
 
     #[test]
@@ -203,8 +209,11 @@ mod tests {
     #[test]
     fn shade_hit_and_shadows() {
         let light = PointLight::new(Point::new(0.0, 0.0, 10.0), Color::white());
-        let s1 = Sphere::default();
-        let s2 = Sphere::new(Matrix::translation(vector::Z * 10.0), Material::default());
+        let s1 = Object::Sphere(Sphere::default());
+        let s2 = Object::Sphere(Sphere::new(
+            Matrix::translation(vector::Z * 10.0),
+            Material::default(),
+        ));
         let world = World::new(vec![s1, s2], light);
         let ray = Ray::new(Point::new(0.0, 0.0, 5.0), vector::Z);
         let i = Intersection::new(4.0, &world.objects[1]);

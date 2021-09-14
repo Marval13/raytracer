@@ -1,6 +1,6 @@
-use crate::{Intersection, Material, Matrix, Point, Ray, Shape, Vector};
+use crate::{Intersection, Material, Matrix, Object, Point, Ray, Shape, Vector};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Sphere {
     pub transform: Matrix,
     pub material: Material,
@@ -26,16 +26,16 @@ impl Default for Sphere {
 }
 
 impl Shape for Sphere {
-    fn get_transform(&self) -> &Matrix {
-        &self.transform
+    fn get_transform(&self) -> Matrix {
+        self.transform
     }
 
     fn set_transform(&mut self, transform: Matrix) {
         self.transform = transform;
     }
 
-    fn get_material(&self) -> &Material {
-        &self.material
+    fn get_material(&self) -> Material {
+        self.material
     }
 
     fn set_material(&mut self, material: Material) {
@@ -54,8 +54,14 @@ impl Shape for Sphere {
             Vec::new()
         } else {
             vec![
-                Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), self),
-                Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), self),
+                Intersection::new(
+                    (-b - discriminant.sqrt()) / (2.0 * a),
+                    &Object::Sphere(*self),
+                ),
+                Intersection::new(
+                    (-b + discriminant.sqrt()) / (2.0 * a),
+                    &Object::Sphere(*self),
+                ),
             ]
         }
     }
@@ -71,7 +77,7 @@ mod tests {
     use crate::utils::equal;
 
     #[test]
-    fn sphere_normals() {
+    fn normals() {
         let s = Sphere::default();
 
         assert_eq!(
@@ -108,8 +114,8 @@ mod tests {
         assert_eq!(intersections.len(), 2);
         assert!(equal(intersections[0].t, 4.0));
         assert!(equal(intersections[1].t, 6.0));
-        assert_eq!(intersections[0].object, &s);
-        assert_eq!(intersections[1].object, &s);
+        assert_eq!(intersections[0].object, Object::Sphere(s));
+        assert_eq!(intersections[1].object, Object::Sphere(s));
     }
 
     #[test]
@@ -121,8 +127,8 @@ mod tests {
         assert_eq!(intersections.len(), 2);
         assert!(equal(intersections[0].t, 5.0));
         assert!(equal(intersections[1].t, 5.0));
-        assert_eq!(intersections[0].object, &s);
-        assert_eq!(intersections[1].object, &s);
+        assert_eq!(intersections[0].object, Object::Sphere(s));
+        assert_eq!(intersections[1].object, Object::Sphere(s));
     }
 
     #[test]
@@ -143,8 +149,8 @@ mod tests {
         assert_eq!(intersections.len(), 2);
         assert!(equal(intersections[0].t, -1.0));
         assert!(equal(intersections[1].t, 1.0));
-        assert_eq!(intersections[0].object, &s);
-        assert_eq!(intersections[1].object, &s);
+        assert_eq!(intersections[0].object, Object::Sphere(s));
+        assert_eq!(intersections[1].object, Object::Sphere(s));
     }
 
     #[test]
@@ -156,7 +162,7 @@ mod tests {
         assert_eq!(intersections.len(), 2);
         assert!(equal(intersections[0].t, -6.0));
         assert!(equal(intersections[1].t, -4.0));
-        assert_eq!(intersections[0].object, &s);
-        assert_eq!(intersections[1].object, &s);
+        assert_eq!(intersections[0].object, Object::Sphere(s));
+        assert_eq!(intersections[1].object, Object::Sphere(s));
     }
 }

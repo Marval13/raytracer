@@ -1,16 +1,16 @@
 use crate::utils::EPSILON;
-use crate::{Point, Ray, Shape, Sphere, Vector};
+use crate::{Object, Point, Ray, Shape, Vector};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Intersection<'a> {
+pub struct Intersection {
     pub t: f64,
-    pub object: &'a Sphere,
+    pub object: Object,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Computations<'a> {
+pub struct Computations {
     pub t: f64,
-    pub object: &'a Sphere,
+    pub object: Object,
     pub point: Point,
     pub eyev: Vector,
     pub normal: Vector,
@@ -18,10 +18,10 @@ pub struct Computations<'a> {
     pub over_point: Point,
 }
 
-impl<'a> Intersection<'a> {
+impl Intersection {
     #[must_use]
-    pub fn new(t: f64, object: &'a Sphere) -> Self {
-        Self { t, object }
+    pub fn new(t: f64, object: &Object) -> Self {
+        Self { t, object: *object }
     }
 
     #[must_use]
@@ -57,21 +57,24 @@ impl<'a> Intersection<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{vector, Material, Matrix};
+    use crate::{vector, Material, Matrix, Sphere};
 
     #[test]
     fn new_intersection() {
         let s = Sphere::default();
-        let i = Intersection::new(3.5, &s);
+        let i = Intersection::new(3.5, &Object::Sphere(s));
 
         assert_eq!(i.t, 3.5);
-        assert_eq!(i.object, &s);
+        assert_eq!(i.object, Object::Sphere(s));
     }
 
     #[test]
     fn hit_positive() {
         let s = Sphere::default();
-        let intersections = vec![Intersection::new(1.0, &s), Intersection::new(2.0, &s)];
+        let intersections = vec![
+            Intersection::new(1.0, &Object::Sphere(s)),
+            Intersection::new(2.0, &Object::Sphere(s)),
+        ];
         let i = Intersection::hit(&intersections).unwrap();
 
         assert_eq!(i.t, 1.0);
@@ -80,7 +83,10 @@ mod tests {
     #[test]
     fn hit_negative() {
         let s = Sphere::default();
-        let intersections = vec![Intersection::new(1.0, &s), Intersection::new(-1.0, &s)];
+        let intersections = vec![
+            Intersection::new(1.0, &Object::Sphere(s)),
+            Intersection::new(-1.0, &Object::Sphere(s)),
+        ];
         let i = Intersection::hit(&intersections).unwrap();
 
         assert_eq!(i.t, 1.0);
@@ -89,7 +95,10 @@ mod tests {
     #[test]
     fn hit_all_negative() {
         let s = Sphere::default();
-        let intersections = vec![Intersection::new(-2.0, &s), Intersection::new(-1.0, &s)];
+        let intersections = vec![
+            Intersection::new(-2.0, &Object::Sphere(s)),
+            Intersection::new(-1.0, &Object::Sphere(s)),
+        ];
         let i = Intersection::hit(&intersections);
 
         assert!(i.is_none());
@@ -99,10 +108,10 @@ mod tests {
     fn hit_big() {
         let s = Sphere::default();
         let intersections = vec![
-            Intersection::new(5.0, &s),
-            Intersection::new(7.0, &s),
-            Intersection::new(-3.0, &s),
-            Intersection::new(2.0, &s),
+            Intersection::new(5.0, &Object::Sphere(s)),
+            Intersection::new(7.0, &Object::Sphere(s)),
+            Intersection::new(-3.0, &Object::Sphere(s)),
+            Intersection::new(2.0, &Object::Sphere(s)),
         ];
         let i = Intersection::hit(&intersections).unwrap();
 
@@ -127,7 +136,7 @@ mod tests {
     fn precomputations_inside() {
         let ray = Ray::new(Point::default(), Vector::new(0.0, 0.0, 1.0));
         let s = Sphere::default();
-        let i = Intersection::new(1.0, &s);
+        let i = Intersection::new(1.0, &Object::Sphere(s));
         let comps = i.prepare_computations(&ray);
 
         assert_eq!(comps.point, Point::new(0.0, 0.0, 1.0));
@@ -140,7 +149,7 @@ mod tests {
     fn precomputations_over_point() {
         let ray = Ray::new(Point::new(0.0, 0.0, -5.0), vector::Z);
         let s = Sphere::new(Matrix::translation(vector::Z), Material::default());
-        let i = Intersection::new(5.0, &s);
+        let i = Intersection::new(5.0, &Object::Sphere(s));
         let comps = i.prepare_computations(&ray);
 
         assert!(comps.over_point.z < -EPSILON / 2.0);

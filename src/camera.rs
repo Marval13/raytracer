@@ -46,8 +46,8 @@ impl Camera {
         let world_y = self.half_height - yoffset;
 
         let transform_inv = self.transform.inverse();
-        let pixel = &transform_inv * Point::new(world_x, world_y, -1.0);
-        let origin = &transform_inv * Point::default();
+        let pixel = transform_inv * Point::new(world_x, world_y, -1.0);
+        let origin = transform_inv * Point::default();
         let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)

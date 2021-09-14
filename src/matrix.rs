@@ -1,34 +1,40 @@
+#![allow(clippy::needless_range_loop)]
+
 use crate::utils::equal;
 use crate::{Point, Vector};
 
-use grid::Grid;
-
 use std::ops::Mul;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Matrix {
     pub dimension: usize,
-    pub grid: Grid<f64>,
+    pub grid: [[f64; 4]; 4],
 }
 
 impl Matrix {
+    #[allow(clippy::needless_pass_by_value)]
     #[must_use]
     pub fn new(dimension: usize, contents: Vec<f64>) -> Self {
-        if contents.len() != dimension * dimension {
+        if dimension > 4 || contents.len() != dimension * dimension {
             panic!();
         }
 
-        Self {
-            dimension,
-            grid: Grid::from_vec(contents, dimension),
+        let mut grid = [[0.0; 4]; 4];
+        let mut iter = contents.iter();
+        for row in 0..dimension {
+            for col in 0..dimension {
+                grid[row][col] = *iter.next().unwrap();
+            }
         }
+
+        Self { dimension, grid }
     }
 
     #[must_use]
     pub fn eye(dimension: usize) -> Self {
-        let mut grid = Grid::new(dimension, dimension);
+        let mut grid = [[0.0; 4]; 4];
         for i in 0..dimension {
-            *grid.get_mut(i, i).unwrap() = 1.0;
+            grid[i][i] = 1.0;
         }
 
         Self { dimension, grid }
@@ -36,15 +42,19 @@ impl Matrix {
 
     #[must_use]
     pub fn get(&self, row: usize, col: usize) -> f64 {
-        *self.grid.get(row, col).unwrap()
+        self.grid[row][col]
+    }
+
+    pub fn set(&mut self, row: usize, col: usize, val: f64) {
+        self.grid[row][col] = val;
     }
 
     #[must_use]
     pub fn transpose(&self) -> Self {
-        let mut grid = Grid::init(self.dimension, self.dimension, 0.0);
+        let mut grid = [[0.0; 4]; 4];
         for row in 0..self.dimension {
             for col in 0..self.dimension {
-                *grid.get_mut(row, col).unwrap() = *self.grid.get(col, row).unwrap();
+                grid[row][col] = self.get(col, row);
             }
         }
 
@@ -60,16 +70,13 @@ impl Matrix {
             panic!();
         }
 
-        let mut grid = Grid::init(self.dimension - 1, self.dimension - 1, 0.0);
+        let mut grid = [[0.0; 4]; 4];
         for new_row in 0..self.dimension - 1 {
             for new_col in 0..self.dimension - 1 {
-                *grid.get_mut(new_row, new_col).unwrap() = *self
-                    .grid
-                    .get(
-                        if new_row >= row { new_row + 1 } else { new_row },
-                        if new_col >= col { new_col + 1 } else { new_col },
-                    )
-                    .unwrap();
+                grid[new_row][new_col] = self.get(
+                    if new_row >= row { new_row + 1 } else { new_row },
+                    if new_col >= col { new_col + 1 } else { new_col },
+                );
             }
         }
 
@@ -87,7 +94,7 @@ impl Matrix {
 
         let mut determinant = 0.0;
         for row in 0..self.dimension {
-            determinant += self.grid.get(row, 0).unwrap() * self.cofactor(row, 0);
+            determinant += self.get(row, 0) * self.cofactor(row, 0);
         }
 
         determinant
@@ -111,10 +118,10 @@ impl Matrix {
             panic!();
         }
 
-        let mut grid = Grid::new(self.dimension, self.dimension);
+        let mut grid = [[0.0; 4]; 4];
         for row in 0..self.dimension {
             for col in 0..self.dimension {
-                *grid.get_mut(row, col).unwrap() = self.cofactor(col, row) / determinant;
+                grid[row][col] = self.cofactor(col, row) / determinant;
             }
         }
 
@@ -133,10 +140,15 @@ impl Default for Matrix {
 
 impl PartialEq for Matrix {
     fn eq(&self, other: &Self) -> bool {
-        self.grid
-            .iter()
-            .zip(other.grid.iter())
-            .all(|(&x, &y)| equal(x, y))
+        for row in 0..4 {
+            for col in 0..4 {
+                if !equal(self.get(row, col), other.get(row, col)) {
+                    return false;
+                }
+            }
+        }
+
+        self.dimension == other.dimension
     }
 }
 
@@ -150,13 +162,12 @@ impl Mul for Matrix {
 
         let dimension = self.dimension;
 
-        let mut grid = Grid::new(dimension, dimension);
+        let mut grid = [[0.0; 4]; 4];
 
         for row in 0..dimension {
             for col in 0..dimension {
-                let cell = grid.get_mut(row, col).unwrap();
                 for i in 0..dimension {
-                    *cell += self.get(row, i) * other.get(i, col);
+                    grid[row][col] += self.get(row, i) * other.get(i, col);
                 }
             }
         }
