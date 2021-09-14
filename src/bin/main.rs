@@ -41,7 +41,10 @@ fn chapter6() {
                 let normal = hit.object.normal_at(point);
                 let eye = -ray.direction;
 
-                let color = hit.object.material.lighting(point, light, eye, normal);
+                let color = hit
+                    .object
+                    .material
+                    .lighting(point, light, eye, normal, false);
 
                 c.write_pixel(x, y, color);
             }
@@ -113,5 +116,7 @@ fn chapter7() {
     let mut camera = Camera::new(500, 250, PI / 3.0);
     camera.transform = Matrix::view_transform(Point::new(0.0, 1.5, -5.0), point::UY, vector::Y);
 
-    camera.render(&world).save(Path::new("./renders/chapter7.ppm"));
+    camera
+        .render(&world)
+        .save(Path::new("./renders/chapter8.ppm"));
 }

@@ -1,3 +1,4 @@
+use crate::utils::EPSILON;
 use crate::{Point, Ray, Sphere, Vector};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -14,6 +15,7 @@ pub struct Computations<'a> {
     pub eyev: Vector,
     pub normal: Vector,
     pub inside: bool,
+    pub over_point: Point,
 }
 
 impl<'a> Intersection<'a> {
@@ -38,14 +40,16 @@ impl<'a> Intersection<'a> {
         let eyev = -ray.direction;
         let normal = self.object.normal_at(point);
         let inside = normal.dot(&eyev) < 0.0;
+        let normal = if inside { -normal } else { normal };
 
         Computations {
             t: self.t,
             object: self.object,
             point,
             eyev,
-            normal: if inside { -normal } else { normal },
+            normal,
             inside,
+            over_point: point + normal * EPSILON,
         }
     }
 }
@@ -53,6 +57,7 @@ impl<'a> Intersection<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{vector, Material, Matrix};
 
     #[test]
     fn new_intersection() {
@@ -129,5 +134,16 @@ mod tests {
         assert_eq!(comps.eyev, Vector::new(0.0, 0.0, -1.0));
         assert_eq!(comps.normal, Vector::new(0.0, 0.0, -1.0));
         assert!(comps.inside);
+    }
+
+    #[test]
+    fn precomputations_over_point() {
+        let ray = Ray::new(Point::new(0.0, 0.0, -5.0), vector::Z);
+        let s = Sphere::new(Matrix::translation(vector::Z), Material::default());
+        let i = Intersection::new(5.0, &s);
+        let comps = i.prepare_computations(&ray);
+
+        assert!(comps.over_point.z < -EPSILON / 2.0);
+        assert!(comps.over_point.z < comps.point.z);
     }
 }

@@ -1,4 +1,4 @@
-const EPSILON: f64 = 0.0001;
+pub(crate) const EPSILON: f64 = 0.0001;
 
 #[must_use]
 pub fn equal(a: f64, b: f64) -> bool {

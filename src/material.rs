@@ -45,31 +45,42 @@ impl Material {
     }
 
     #[must_use]
-    pub fn lighting(&self, point: Point, light: PointLight, eyev: Vector, normal: Vector) -> Color {
+    pub fn lighting(
+        &self,
+        point: Point,
+        light: PointLight,
+        eyev: Vector,
+        normal: Vector,
+        in_shadow: bool,
+    ) -> Color {
         let effective_color = self.color * light.intensity;
         let lightv = (light.position - point).normalize();
         let ambient = effective_color * self.ambient;
         let light_dot_normal = lightv.dot(&normal);
 
-        let diffuse;
-        let specular;
-
-        if light_dot_normal < 0.0 {
-            diffuse = Color::black();
-            specular = Color::black();
+        if in_shadow {
+            ambient
         } else {
-            diffuse = effective_color * self.diffuse * light_dot_normal;
-            let reflectv = (-lightv).reflect(&normal);
-            let reflect_dot_eye = reflectv.dot(&eyev);
-            if reflect_dot_eye <= 0.0 {
+            let diffuse;
+            let specular;
+
+            if light_dot_normal < 0.0 {
+                diffuse = Color::black();
                 specular = Color::black();
             } else {
-                let factor = reflect_dot_eye.powf(self.shininess);
-                specular = light.intensity * self.specular * factor;
+                diffuse = effective_color * self.diffuse * light_dot_normal;
+                let reflectv = (-lightv).reflect(&normal);
+                let reflect_dot_eye = reflectv.dot(&eyev);
+                if reflect_dot_eye <= 0.0 {
+                    specular = Color::black();
+                } else {
+                    let factor = reflect_dot_eye.powf(self.shininess);
+                    specular = light.intensity * self.specular * factor;
+                }
             }
-        }
 
-        ambient + diffuse + specular
+            ambient + diffuse + specular
+        }
     }
 }
 
@@ -94,7 +105,7 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal),
+            Material::default().lighting(Point::default(), light, eye, normal, false),
             Color::new(1.9, 1.9, 1.9),
         );
     }
@@ -106,7 +117,7 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal),
+            Material::default().lighting(Point::default(), light, eye, normal, false),
             Color::new(1.0, 1.0, 1.0),
         );
     }
@@ -118,7 +129,7 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 10.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal),
+            Material::default().lighting(Point::default(), light, eye, normal, false),
             Color::new(0.7364, 0.7364, 0.7364),
         );
     }
@@ -130,7 +141,7 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 10.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal),
+            Material::default().lighting(Point::default(), light, eye, normal, false),
             Color::new(1.6364, 1.6364, 1.6364),
         );
     }
@@ -142,7 +153,19 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, 10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal),
+            Material::default().lighting(Point::default(), light, eye, normal, false),
+            Color::new(0.1, 0.1, 0.1),
+        );
+    }
+
+    #[test]
+    fn lighting_in_shadow() {
+        let eye = Vector::new(0.0, 0.0, -1.0);
+        let normal = Vector::new(0.0, 0.0, -1.0);
+        let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
+
+        assert_eq!(
+            Material::default().lighting(Point::default(), light, eye, normal, true),
             Color::new(0.1, 0.1, 0.1),
         );
     }
