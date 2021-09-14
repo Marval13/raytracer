@@ -22,9 +22,14 @@ impl Canvas {
         }
     }
 
-    pub fn write_pixel(&mut self, x: usize, y: usize, c: Color) {
+    pub fn write_pixel(&mut self, x: usize, y: usize, color: Color) {
         let pixel = self.canvas.get_mut(y, x).unwrap();
-        *pixel = c;
+        *pixel = color;
+    }
+
+    #[must_use]
+    pub fn pixel_at(&self, x: usize, y: usize) -> &Color {
+        self.canvas.get(y, x).unwrap()
     }
 
     #[must_use]

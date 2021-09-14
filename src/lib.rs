@@ -1,6 +1,7 @@
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::missing_panics_doc)]
 
+pub mod camera;
 pub mod canvas;
 pub mod color;
 pub mod intersection;
@@ -15,6 +16,7 @@ pub mod utils;
 pub mod vector;
 pub mod world;
 
+pub use camera::Camera;
 pub use canvas::Canvas;
 pub use color::Color;
 pub use intersection::Computations;

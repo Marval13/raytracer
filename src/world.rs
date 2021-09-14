@@ -51,13 +51,12 @@ impl Default for World {
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::vector;
+pub(crate) mod test_world {
     use crate::{Material, Matrix, Point, Vector};
 
     use super::*;
 
-    fn test_world() -> World {
+    pub fn test_world() -> World {
         let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::white());
 
         let m1 = Material {
@@ -75,6 +74,15 @@ mod tests {
 
         World::new(vec![s1, s2], light)
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::vector;
+    use crate::{Material, Point};
+
+    use super::test_world::test_world;
+    use super::*;
 
     #[test]
     fn new_world() {
