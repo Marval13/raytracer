@@ -1,9 +1,10 @@
 use crate::utils::equal;
-use crate::{Color, Point, PointLight, Vector};
+use crate::{Color, Object, Pattern, Point, PointLight, Vector};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Material {
     pub color: Color,
+    pub pattern: Pattern,
     pub ambient: f64,
     pub diffuse: f64,
     pub specular: f64,
@@ -24,6 +25,7 @@ impl Default for Material {
     fn default() -> Self {
         Self {
             color: Color::default(),
+            pattern: Pattern::None,
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,
@@ -34,9 +36,17 @@ impl Default for Material {
 
 impl Material {
     #[must_use]
-    pub fn new(color: Color, ambient: f64, diffuse: f64, specular: f64, shininess: f64) -> Self {
+    pub fn new(
+        color: Color,
+        pattern: Pattern,
+        ambient: f64,
+        diffuse: f64,
+        specular: f64,
+        shininess: f64,
+    ) -> Self {
         Self {
             color,
+            pattern,
             ambient,
             diffuse,
             specular,
@@ -47,13 +57,19 @@ impl Material {
     #[must_use]
     pub fn lighting(
         &self,
+        object: &Object,
         point: Point,
         light: PointLight,
         eyev: Vector,
         normal: Vector,
         in_shadow: bool,
     ) -> Color {
-        let effective_color = self.color * light.intensity;
+        let color = if self.pattern == Pattern::None {
+            self.color
+        } else {
+            self.pattern.color_at_object(object, point)
+        };
+        let effective_color = color * light.intensity;
         let lightv = (light.position - point).normalize();
         let ambient = effective_color * self.ambient;
         let light_dot_normal = lightv.dot(&normal);
@@ -86,6 +102,8 @@ impl Material {
 
 #[cfg(test)]
 mod tests {
+    use crate::pattern::StripePattern;
+
     use super::*;
 
     #[test]
@@ -105,7 +123,14 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal, false),
+            Material::default().lighting(
+                &Object::default(),
+                Point::default(),
+                light,
+                eye,
+                normal,
+                false
+            ),
             Color::new(1.9, 1.9, 1.9),
         );
     }
@@ -117,7 +142,14 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal, false),
+            Material::default().lighting(
+                &Object::default(),
+                Point::default(),
+                light,
+                eye,
+                normal,
+                false
+            ),
             Color::new(1.0, 1.0, 1.0),
         );
     }
@@ -129,7 +161,14 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 10.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal, false),
+            Material::default().lighting(
+                &Object::default(),
+                Point::default(),
+                light,
+                eye,
+                normal,
+                false
+            ),
             Color::new(0.7364, 0.7364, 0.7364),
         );
     }
@@ -141,7 +180,14 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 10.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal, false),
+            Material::default().lighting(
+                &Object::default(),
+                Point::default(),
+                light,
+                eye,
+                normal,
+                false
+            ),
             Color::new(1.6364, 1.6364, 1.6364),
         );
     }
@@ -153,7 +199,14 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, 10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal, false),
+            Material::default().lighting(
+                &Object::default(),
+                Point::default(),
+                light,
+                eye,
+                normal,
+                false
+            ),
             Color::new(0.1, 0.1, 0.1),
         );
     }
@@ -165,8 +218,48 @@ mod tests {
         let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
 
         assert_eq!(
-            Material::default().lighting(Point::default(), light, eye, normal, true),
+            Material::default().lighting(
+                &Object::default(),
+                Point::default(),
+                light,
+                eye,
+                normal,
+                true
+            ),
             Color::new(0.1, 0.1, 0.1),
+        );
+    }
+
+    #[test]
+    fn lighting_with_pattern() {
+        let pattern = Pattern::Stripe(StripePattern::new(Color::white(), Color::black()));
+        let eye = Vector::new(0.0, 0.0, -1.0);
+        let normal = Vector::new(0.0, 0.0, -1.0);
+        let light = PointLight::new(Point::new(0.0, 0.0, -10.0), Color::default());
+        let material = Material::new(Color::default(), pattern, 1.0, 0.0, 0.0, 200.0);
+
+        assert_eq!(
+            material.lighting(
+                &Object::default(),
+                Point::new(0.9, 0.0, 0.0),
+                light,
+                eye,
+                normal,
+                true
+            ),
+            Color::white(),
+        );
+
+        assert_eq!(
+            material.lighting(
+                &Object::default(),
+                Point::new(1.1, 0.0, 0.0),
+                light,
+                eye,
+                normal,
+                true
+            ),
+            Color::black(),
         );
     }
 }

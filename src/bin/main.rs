@@ -1,95 +1,39 @@
-use raytracer::{point, vector, Camera, Object, Shape, Vector, World};
-use raytracer::{Canvas, Color, Intersection, Material, Matrix, Point, PointLight, Ray, Sphere};
+use raytracer::pattern::StripePattern;
+use raytracer::{
+    point, vector, Camera, Color, Material, Matrix, Object, Pattern, Plane, Point, PointLight,
+    Shape, Sphere, Vector, World,
+};
 use std::f64::consts::PI;
 
 use std::path::Path;
 
 fn main() {
-    chapter7();
-}
-
-#[allow(dead_code)]
-fn chapter6() {
-    let origin = Point::new(0.0, 0.0, -5.0);
-    let wall_z = 10.0;
-    let wall_size = 7.0;
-    let canvas_size = 200;
-    let pixel_size = wall_size / canvas_size as f64;
-    let half = wall_size / 2.0;
-
-    let transform = Matrix::scaling(Vector::new(1.0, 0.5, 0.5));
-    let transform = Matrix::rotation_z(PI / 12.0) * transform;
-    let material = Material {
-        color: Color::new(1.0, 0.2, 1.0),
-        ..Default::default()
-    };
-    let sphere = Sphere::new(transform, material);
-
-    let light = PointLight::new(Point::new(-10.0, 10.0, -10.0), Color::white());
-
-    let mut c = Canvas::new(canvas_size, canvas_size);
-
-    for y in 0..canvas_size {
-        let world_y = half - pixel_size * y as f64;
-        for x in 0..canvas_size {
-            let world_x = half - pixel_size * x as f64;
-            let position = Point::new(world_x, world_y, wall_z);
-            let ray = Ray::new(origin, (position - origin).normalize());
-
-            if let Some(hit) = Intersection::hit(&ray.intersect(&sphere)) {
-                let point = ray.position(hit.t);
-                let normal = hit.object.normal_at(point);
-                let eye = -ray.direction;
-
-                let color = hit
-                    .object
-                    .get_material()
-                    .lighting(point, light, eye, normal, false);
-
-                c.write_pixel(x, y, color);
-            }
-        }
-    }
-
-    c.save(Path::new("./renders/chapter6.ppm"));
-}
-
-fn chapter7() {
     let matte_gray = Material {
         color: Color::new(1.0, 0.9, 0.9),
         specular: 0.0,
         ..Default::default()
     };
 
-    let left_wall_transform = Matrix::translation(vector::Z * 5.0)
-        * Matrix::rotation_y(-PI / 4.0)
-        * Matrix::rotation_x(PI / 2.0)
-        * Matrix::scaling(Vector::new(10.0, 0.01, 10.0));
+    let floor = Plane::new(Matrix::default(), matte_gray);
 
-    let right_wall_transform = Matrix::translation(vector::Z * 5.0)
-        * Matrix::rotation_y(PI / 4.0)
-        * Matrix::rotation_x(PI / 2.0)
-        * Matrix::scaling(Vector::new(10.0, 0.01, 10.0));
-
-    let floor = Sphere::new(Matrix::scaling(Vector::new(10.0, 0.01, 10.0)), matte_gray);
-    let left_wall = Sphere::new(left_wall_transform, matte_gray);
-    let right_wall = Sphere::new(right_wall_transform, matte_gray);
-
-    let sphere1 = Sphere::new(
+    let mut sphere1 = Sphere::new(
         Matrix::translation(Vector::new(-0.5, 1.0, 0.5)),
         Material {
             color: Color::new(0.1, 1.0, 0.5),
+            pattern: Pattern::Stripe(StripePattern::default()),
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
         },
     );
+    sphere1.material.pattern.set_transform(Matrix::scaling(Vector::new(0.2, 0.2, 0.2)));
 
     let sphere2 = Sphere::new(
         Matrix::translation(Vector::new(1.5, 0.5, -0.5))
             * Matrix::scaling(Vector::new(0.5, 0.5, 0.5)),
         Material {
             color: Color::new(0.5, 1.0, 0.1),
+            pattern: Pattern::Stripe(StripePattern::default()),
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
@@ -101,6 +45,7 @@ fn chapter7() {
             * Matrix::scaling(Vector::new(0.33, 0.33, 0.33)),
         Material {
             color: Color::new(1.0, 0.8, 0.1),
+            pattern: Pattern::Stripe(StripePattern::default()),
             diffuse: 0.7,
             specular: 0.3,
             ..Default::default()
@@ -111,19 +56,15 @@ fn chapter7() {
 
     let world = World::new(
         vec![
-            Object::Sphere(floor),
-            Object::Sphere(left_wall),
-            Object::Sphere(right_wall),
+            Object::Plane(floor),
             Object::Sphere(sphere1),
             Object::Sphere(sphere2),
             Object::Sphere(sphere3),
         ],
         light,
     );
-    let mut camera = Camera::new(500, 250, PI / 3.0);
+    let mut camera = Camera::new(300, 150, PI / 3.0);
     camera.transform = Matrix::view_transform(Point::new(0.0, 1.5, -5.0), point::UY, vector::Y);
 
-    camera
-        .render(&world)
-        .save(Path::new("./renders/chapter8.ppm"));
+    camera.render(&world).save(Path::new("./img.ppm"));
 }

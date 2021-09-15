@@ -131,7 +131,7 @@ pub(crate) mod testshape {
 mod tests {
     use super::*;
     use crate::utils::equal;
-    use crate::Color;
+    use crate::{Color, Pattern};
     use std::f64::consts::PI;
 
     #[derive(Debug, Default)]
@@ -189,7 +189,14 @@ mod tests {
         let mut s = TestShape::default();
         assert_eq!(s.get_material(), Material::default());
 
-        s.set_material(Material::new(Color::black(), 0.0, 0.5, 1.0, 50.0));
+        s.set_material(Material::new(
+            Color::black(),
+            Pattern::None,
+            0.0,
+            0.5,
+            1.0,
+            50.0,
+        ));
         assert_eq!(s.get_material().color, Color::black());
         assert_eq!(s.get_material().diffuse, 0.5);
     }
