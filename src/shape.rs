@@ -1,8 +1,9 @@
-use crate::{Intersection, Material, Matrix, Point, Ray, Sphere, Vector};
+use crate::{Intersection, Material, Matrix, Plane, Point, Ray, Sphere, Vector};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Object {
     Sphere(Sphere),
+    Plane(Plane),
 }
 
 pub trait Shape: Default {
@@ -47,36 +48,42 @@ impl Shape for Object {
     fn get_transform(&self) -> Matrix {
         match *self {
             Object::Sphere(o) => o.get_transform(),
+            Object::Plane(o) => o.get_transform(),
         }
     }
 
     fn set_transform(&mut self, transform: Matrix) {
         match self {
             Object::Sphere(o) => o.set_transform(transform),
+            Object::Plane(o) => o.set_transform(transform),
         }
     }
 
     fn get_material(&self) -> Material {
         match *self {
             Object::Sphere(o) => o.get_material(),
+            Object::Plane(o) => o.get_material(),
         }
     }
 
     fn set_material(&mut self, material: Material) {
         match self {
             Object::Sphere(o) => o.set_material(material),
+            Object::Plane(o) => o.set_material(material),
         }
     }
 
     fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
         match self {
             Object::Sphere(o) => o.local_intersect(ray),
+            Object::Plane(o) => o.local_intersect(ray),
         }
     }
 
     fn local_normal_at(&self, point: Point) -> Vector {
         match self {
             Object::Sphere(o) => o.local_normal_at(point),
+            Object::Plane(o) => o.local_normal_at(point),
         }
     }
 }
