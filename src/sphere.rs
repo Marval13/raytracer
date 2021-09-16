@@ -1,3 +1,4 @@
+use crate::transformations::Transformable;
 use crate::{Intersection, Material, Matrix, Object, Point, Ray, Shape, Vector};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -25,7 +26,7 @@ impl Default for Sphere {
     }
 }
 
-impl Shape for Sphere {
+impl Transformable for Sphere {
     fn get_transform(&self) -> Matrix {
         self.transform
     }
@@ -33,7 +34,9 @@ impl Shape for Sphere {
     fn set_transform(&mut self, transform: Matrix) {
         self.transform = transform;
     }
+}
 
+impl Shape for Sphere {
     fn get_material(&self) -> Material {
         self.material
     }

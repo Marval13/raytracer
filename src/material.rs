@@ -1,5 +1,5 @@
 use crate::utils::equal;
-use crate::{Color, Object, Pattern, Point, PointLight, Vector};
+use crate::{Color, Object, Pattern, Patterned, Point, PointLight, Vector};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Material {

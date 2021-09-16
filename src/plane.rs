@@ -1,3 +1,4 @@
+use crate::transformations::Transformable;
 use crate::utils::EPSILON;
 use crate::{vector, Intersection, Material, Matrix, Object, Point, Ray, Shape, Vector};
 
@@ -7,7 +8,7 @@ pub struct Plane {
     material: Material,
 }
 
-impl Shape for Plane {
+impl Transformable for Plane {
     fn get_transform(&self) -> Matrix {
         self.transform
     }
@@ -15,7 +16,9 @@ impl Shape for Plane {
     fn set_transform(&mut self, transform: Matrix) {
         self.transform = transform;
     }
+}
 
+impl Shape for Plane {
     fn get_material(&self) -> Material {
         self.material
     }

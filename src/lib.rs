@@ -26,7 +26,7 @@ pub use intersection::{Computations, Intersection};
 pub use light::PointLight;
 pub use material::Material;
 pub use matrix::Matrix;
-pub use pattern::Pattern;
+pub use pattern::{Pattern, Patterned};
 pub use plane::Plane;
 pub use point::Point;
 pub use ray::Ray;

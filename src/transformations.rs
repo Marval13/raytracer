@@ -1,5 +1,15 @@
 use crate::{Matrix, Point, Vector};
 
+pub trait Transformable {
+    #[must_use]
+    fn get_transform(&self) -> Matrix;
+    fn set_transform(&mut self, transform: Matrix);
+
+    fn transform(&mut self, transform: Matrix) {
+        self.set_transform(transform * self.get_transform());
+    }
+}
+
 impl Matrix {
     #[must_use]
     pub fn translation(v: Vector) -> Self {
@@ -105,6 +115,44 @@ mod tests {
     use crate::vector;
 
     use std::f64::consts::PI;
+
+    #[derive(Debug, Default)]
+    struct TestTransformable {
+        pub transform: Matrix,
+    }
+
+    impl Transformable for TestTransformable {
+        fn get_transform(&self) -> Matrix {
+            self.transform
+        }
+
+        fn set_transform(&mut self, transform: Matrix) {
+            self.transform = transform;
+        }
+    }
+
+    #[test]
+    fn transformable_default() {
+        assert_eq!(TestTransformable::default().transform, Matrix::default());
+    }
+
+    #[test]
+    fn transformable_set_get() {
+        let mut t = TestTransformable::default();
+        t.set_transform(Matrix::rotation_x(2.0));
+        assert_eq!(t.transform, Matrix::rotation_x(2.0));
+        assert_eq!(t.get_transform(), Matrix::rotation_x(2.0));
+    }
+
+    #[test]
+    fn transformable_transforms() {
+        let mut t = TestTransformable::default();
+        t.transform(Matrix::rotation_x(2.0));
+        assert_eq!(t.transform, Matrix::rotation_x(2.0));
+
+        t.transform(Matrix::rotation_x(-2.0));
+        assert_eq!(t.transform, Matrix::default());
+    }
 
     #[test]
     fn translation_point() {

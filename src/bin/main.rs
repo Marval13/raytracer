@@ -1,4 +1,5 @@
 use raytracer::pattern::StripePattern;
+use raytracer::transformations::Transformable;
 use raytracer::{
     point, vector, Camera, Color, Material, Matrix, Object, Pattern, Plane, Point, PointLight,
     Shape, Sphere, Vector, World,
@@ -26,7 +27,10 @@ fn main() {
             ..Default::default()
         },
     );
-    sphere1.material.pattern.set_transform(Matrix::scaling(Vector::new(0.2, 0.2, 0.2)));
+    sphere1
+        .material
+        .pattern
+        .set_transform(Matrix::scaling(Vector::new(0.2, 0.2, 0.2)));
 
     let sphere2 = Sphere::new(
         Matrix::translation(Vector::new(1.5, 0.5, -0.5))

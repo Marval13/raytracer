@@ -1,3 +1,4 @@
+use crate::transformations::Transformable;
 use crate::{Intersection, Material, Matrix, Plane, Point, Ray, Sphere, Vector};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -6,11 +7,7 @@ pub enum Object {
     Plane(Plane),
 }
 
-pub trait Shape: Default {
-    #[must_use]
-    fn get_transform(&self) -> Matrix;
-    fn set_transform(&mut self, transform: Matrix);
-
+pub trait Shape: Default + Transformable {
     #[must_use]
     fn get_material(&self) -> Material;
     fn set_material(&mut self, material: Material);
@@ -44,7 +41,7 @@ impl Default for Object {
     }
 }
 
-impl Shape for Object {
+impl Transformable for Object {
     fn get_transform(&self) -> Matrix {
         match *self {
             Object::Sphere(o) => o.get_transform(),
@@ -58,7 +55,9 @@ impl Shape for Object {
             Object::Plane(o) => o.set_transform(transform),
         }
     }
+}
 
+impl Shape for Object {
     fn get_material(&self) -> Material {
         match *self {
             Object::Sphere(o) => o.get_material(),
@@ -99,7 +98,7 @@ pub(crate) mod testshape {
         pub test_ray: Ray,
     }
 
-    impl Shape for TestShape {
+    impl Transformable for TestShape {
         fn get_transform(&self) -> Matrix {
             self.transform
         }
@@ -107,7 +106,9 @@ pub(crate) mod testshape {
         fn set_transform(&mut self, transform: Matrix) {
             self.transform = transform;
         }
+    }
 
+    impl Shape for TestShape {
         fn get_material(&self) -> Material {
             self.material
         }
@@ -129,44 +130,11 @@ pub(crate) mod testshape {
 
 #[cfg(test)]
 mod tests {
+    use super::testshape::TestShape;
     use super::*;
     use crate::utils::equal;
     use crate::{Color, Pattern};
     use std::f64::consts::PI;
-
-    #[derive(Debug, Default)]
-    struct TestShape {
-        pub transform: Matrix,
-        pub material: Material,
-        pub test_ray: Ray,
-    }
-
-    impl Shape for TestShape {
-        fn get_transform(&self) -> Matrix {
-            self.transform
-        }
-
-        fn set_transform(&mut self, transform: Matrix) {
-            self.transform = transform;
-        }
-
-        fn get_material(&self) -> Material {
-            self.material
-        }
-
-        fn set_material(&mut self, material: Material) {
-            self.material = material;
-        }
-
-        fn local_intersect(&self, ray: &Ray) -> Vec<Intersection> {
-            assert_eq!(ray, &self.test_ray);
-            Vec::new()
-        }
-
-        fn local_normal_at(&self, point: Point) -> Vector {
-            point - Point::default()
-        }
-    }
 
     #[test]
     fn new_test_shape() {
